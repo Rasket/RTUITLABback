@@ -153,5 +153,19 @@ def getcheck(id):# рут для получения чека
             'category' : i.category, 'cost' : i.cost, 'type_pay' : i.type_pay}# вытаскиваем поля из записей
         key += 1
     return jsonify(ret)
+
+@app.route('/check/', methods=['GET'])
+def getcheck_alt():# рут для получения чека
+    json_data = request.get_json(force=True)
+    id_buy = json_data['id']
+    u = Check.query.filter_by(id_buy = id_buy).all() 
+    ret = {}# словарик, в который пишутся все чеки
+    key = 0# ключик словарика
+    for i in u:
+        ret[key] = {'id' : i.id, 'id_buy' : i.id_buy, 'products' : i.products, 'amounts' : i.amounts,
+            'category' : i.category, 'cost' : i.cost, 'date' : i.date, 'type_pay' : i.type_pay}# вытаскиваем поля из записей
+        key += 1
+    return jsonify(ret)
+
 if __name__ == "__main__":
 	app.run(port=9999, debug=True)# отключить debug
