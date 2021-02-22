@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from flask_restful import Api, Resource
+from flask_restful import Api, Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import json
@@ -21,9 +21,29 @@ db = SQLAlchemy(app)
 api = Api(app)
 
 
+parser = reqparse.RequestParser()
+parser.add_argument('Shop', 'Product', 'Amount')
+
 #  Класс для апи запросов
 class Products(Resource):
     def get(self):
+        json_data = request.get_json(force=True)
+        id_buy = json_data['id']
+        shop = json_data['shop']
+        products = json_data['products']
+        amounts = json_data['amounts']
+        type_pay = json_data['type_pay']   
+        temp_prod = []
+        temp_amount = []
+
+        for i in products:
+            temp_prod.append(products[i])
+        products = temp_prod
+        for i in amounts:
+            temp_amount.append(amounts[i])
+        amounts = temp_amount
+             
+        ''' получение аргументов из строки
         id_buy = request.args.get('id', None)#   id покупателя
         shop = request.args.get('shop', None)#  магазин, из которого покупаем
         products = str(request.args.get('products', None))#  приобретаемые продукты
@@ -31,12 +51,16 @@ class Products(Resource):
         type_pay  = request.args.get('type_pay', None)#  тип оплаты (тут просто строка, так что данные любые)
         #  получаем из апи запроса данные для покупки
         #  получаем запись о продукте
-        s = Shop.query.filter_by(name = shop).first()#  получаем инфо о магазине
+        #  получаем инфо о магазине
         products = products.split(',')
         amounts = amounts.split(',')
+        '''
         product = [list(temp) for temp in zip(map(int, amounts), products)]
         temp_prod = ""
         temp_amount = ""
+        
+
+        s = Shop.query.filter_by(name = shop).first()
         cost = 0
         for prod in product:
             temp_prod += prod[1] + ", "
@@ -69,11 +93,15 @@ class Products(Resource):
         return 'Incorrect data' # в случае некорректных данных
     def post(self):# пост запрос для завода
     #присылаем продукты в магазин
+        json_data = request.get_json(force=True)
+        return json_data
         shop_name = request.args.get('shop', None)# переменная не используется, но по логике продукты присылаются в магазин
-        product = request.args.get('producr', None)# продукты с завода
+        product = request.args.get('product', None)# продукты с завода
         amount = request.args.get('amount', None)# кол-во продуктов
         p = Product.query.filter_by(name = product).first()
-        p.amount += amount
+        p.amount += int(amount)
+        db.session.commit()
+        return 'GET'
 
 
 
