@@ -26,13 +26,37 @@ class Products(Resource):
     def get(self):
         id_buy = request.args.get('id', None)#   id покупателя
         shop = request.args.get('shop', None)#  магазин, из которого покупаем
-        product = str(request.args.get('product', None))#  приобретаемые продукты
-        amount  = request.args.get('amount', None)#  кол-во товара
+        products = str(request.args.get('products', None))#  приобретаемые продукты
+        amounts  = request.args.get('amounts', None)#  кол-во товара
         type_pay  = request.args.get('type_pay', None)#  тип оплаты (тут просто строка, так что данные любые)
         #  получаем из апи запроса данные для покупки
-        p = Product.query.filter_by(name = product).first()#  получаем запись о продукте
+        #  получаем запись о продукте
         s = Shop.query.filter_by(name = shop).first()#  получаем инфо о магазине
-        if p.shop_id == s.id: #  проверяем что магазин и товар связаны
+        products = products.split(',')
+        amounts = amounts.split(',')
+        product = [list(temp) for temp in zip(map(int, amounts), products)]
+        temp_prod = ""
+        temp_amount = ""
+        cost = 0
+        for prod in product:
+            temp_prod += prod[1] + ", "
+            temp_amount += str(prod[0]) + ", "
+            p = Product.query.filter_by(name = prod[1]).first()
+            if p.amount >= prod[0] and prod[0] > 0:
+                if p.shop_id == s.id:
+                    p.amount -= int(prod[0])
+                    cost += int(prod[0]) * p.cost
+                else:
+                    return 'Incorrect shop'
+            else:
+                return 'Incorrect amount'
+        temp_check = Check(id_buy = id_buy, date = datetime.utcnow(), products = temp_prod, amounts = temp_amount
+                , cost = cost, category = s.category, type_pay = type_pay)
+        db.session.add(temp_check)
+        db.session.commit()
+        return 'Buy'
+        # -------------------------------------
+        if p.shop_id == s.id: #  проверяем что магазин и товары связаны
             if (p.amount >= int(amount)) and (int(amount) > 0):# проверяем кол-во товара 
                 p.amount -= int(amount)#  "приобретаем"
                 temp_check = Check(id_buy = id_buy, date = datetime.utcnow()
@@ -43,8 +67,15 @@ class Products(Resource):
             else:
             	return 'Out of product' # В случае ошибки с кол-вом товара (меньше 0) или его нехваткой пишем об этом
         return 'Incorrect data' # в случае некорректных данных
-    def post(self):# Будущий пост запрос для завода
-        pass
+    def post(self):# пост запрос для завода
+    #присылаем продукты в магазин
+        shop_name = request.args.get('shop', None)# переменная не используется, но по логике продукты присылаются в магазин
+        product = request.args.get('producr', None)# продукты с завода
+        amount = request.args.get('amount', None)# кол-во продуктов
+        p = Product.query.filter_by(name = product).first()
+        p.amount += amount
+
+
 
 '''
 Models
@@ -68,11 +99,13 @@ class Product(db.Model):# модель Продуктов
 class Check(db.Model):# модель Чеков
     id = db.Column(db.Integer, primary_key = True, autoincrement = True)
     id_buy = db.Column(db.Integer)# id покупателя
-    date = db.Column(db.DateTime, default = datetime.utcnow)# дата по Гринвичу
-    cost = db.Column(db.Integer)# стоимость всей покупки
+    products = db.Column(db.String(500))
+    amounts = db.Column(db.Integer)
     category = db.Column(db.String(140))# категория товара
+    cost = db.Column(db.Integer)# стоимость всей покупки
     type_pay = db.Column(db.String(140))# способ оплаты
-
+    date = db.Column(db.DateTime, default = datetime.utcnow)# дата по Гринвичу
+    
 '''
 End of models
 '''
@@ -93,4 +126,4 @@ def getcheck(id):# рут для получения чека
         key += 1
     return jsonify(ret)
 if __name__ == "__main__":
-	app.run(debug=True)# отключить debug
+	app.run(port=9999, debug=True)# отключить debug
