@@ -94,7 +94,6 @@ class Products(Resource):
     def post(self):# пост запрос для завода
     #присылаем продукты в магазин
         json_data = request.get_json(force=True)
-        return json_data
         shop_name = request.args.get('shop', None)# переменная не используется, но по логике продукты присылаются в магазин
         product = request.args.get('product', None)# продукты с завода
         amount = request.args.get('amount', None)# кол-во продуктов
@@ -168,4 +167,4 @@ def getcheck_alt():# рут для получения чека
     return jsonify(ret)
 
 if __name__ == "__main__":
-	app.run(port=9999, debug=True)# отключить debug
+	app.run(host="0.0.0.0", port=9998)# отключить debug
