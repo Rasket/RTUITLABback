@@ -63,8 +63,8 @@ class Products(Resource):
         s = Shop.query.filter_by(name = shop).first()
         cost = 0
         for prod in product:
-            temp_prod += prod[1] + ", "
-            temp_amount += str(prod[0]) + ", "
+            temp_prod += prod[1] + " "
+            temp_amount += str(prod[0]) + " "
             p = Product.query.filter_by(name = prod[1]).first()
             if p.amount >= prod[0] and prod[0] > 0:
                 if p.shop_id == s.id:
