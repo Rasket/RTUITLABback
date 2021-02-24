@@ -1,0 +1,22 @@
+<html>
+    <head>
+        <h1>Здесь вы можете увидеть все чеки</h1>
+    </head>
+    <body>
+        <table style="width: 100%" >
+        {% for _, value in data.items() %}
+        <tr>
+            <td>{{ value["id"] }}</td>
+            <td>{{ value["id_buy"] }}</td>
+            <td>{{ value["products"] }}</td>
+            <td>{{ value["amounts"] }}</td>
+            <td>{{ value["cost"] }}</td>
+            <td>{{ value["date"] }}</td>
+            <td>{{ value["type_pay"] }}</td>
+            <td>{{ value["category"] }}</td>           
+        </tr>
+        {% endfor %}            
+        </table>
+
+    </body>
+</html>
