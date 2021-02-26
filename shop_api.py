@@ -75,13 +75,13 @@ class Products(Resource):
                     return 'Incorrect shop'
             else:
                 return 'Incorrect amount'
-        json_data_check = json.dumps({"id_buy" : str(id_buy), "date" : str(datetime.utcnow()), "products" : str(temp_prod), "amounts" : str(temp_amount), "cost" : str(cost), "category" : str(s.category), "type_pay" : str(type_pay)})
+        json_data_check = json.dumps({"id_buy" : str(id_buy), "shop" : str(s.name), "data" : str(datetime.utcnow()), "products" : str(temp_prod), "amounts" : str(temp_amount), "cost" : str(cost), "category" : str(s.category), "type_pay" : str(type_pay)})
         requests.post("http://127.0.0.1:8888/getcheck/", data = json_data_check)
         #temp_check = Check(id_buy = id_buy, date = datetime.utcnow(), products = temp_prod, amounts = temp_amount
         #        , cost = cost, category = s.category, type_pay = type_pay)
         #db.session.add(temp_check)
         #db.session.commit()
-        return 'Buy'
+        return json_data_check
         # -------------------------------------
         if p.shop_id == s.id: #  проверяем что магазин и товары связаны
             if (p.amount >= int(amount)) and (int(amount) > 0):# проверяем кол-во товара 
@@ -170,4 +170,4 @@ def getcheck_alt():# рут для получения чека
     return jsonify(ret)
 
 if __name__ == "__main__":
-	app.run(host="0.0.0.0", port=9998)# отключить debug
+	app.run(host="0.0.0.0", port=9998, debug=True)# отключить debug
