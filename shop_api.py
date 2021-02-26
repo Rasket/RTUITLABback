@@ -3,6 +3,7 @@ from flask_restful import Api, Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import json
+import requests
 '''
 Документацию не постандарту PEP8 (не на английском), но думаю на это все равно
 Основная задача микросервиса shop принимать и обрабатывать 3 типа запросов
@@ -67,17 +68,19 @@ class Products(Resource):
             temp_amount += str(prod[0]) + " "
             p = Product.query.filter_by(name = prod[1]).first()
             if p.amount >= prod[0] and prod[0] > 0:
-                if p.shop_id == s.id:
+                if p.shop_id == s.id:   
                     p.amount -= int(prod[0])
                     cost += int(prod[0]) * p.cost
                 else:
                     return 'Incorrect shop'
             else:
                 return 'Incorrect amount'
-        temp_check = Check(id_buy = id_buy, date = datetime.utcnow(), products = temp_prod, amounts = temp_amount
-                , cost = cost, category = s.category, type_pay = type_pay)
-        db.session.add(temp_check)
-        db.session.commit()
+        json_data_check = json.dumps({"id_buy" : str(id_buy), "date" : str(datetime.utcnow()), "products" : str(temp_prod), "amounts" : str(temp_amount), "cost" : str(cost), "category" : str(s.category), "type_pay" : str(type_pay)})
+        requests.post("http://127.0.0.1:8888/getcheck/", data = json_data_check)
+        #temp_check = Check(id_buy = id_buy, date = datetime.utcnow(), products = temp_prod, amounts = temp_amount
+        #        , cost = cost, category = s.category, type_pay = type_pay)
+        #db.session.add(temp_check)
+        #db.session.commit()
         return 'Buy'
         # -------------------------------------
         if p.shop_id == s.id: #  проверяем что магазин и товары связаны
