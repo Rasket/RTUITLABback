@@ -156,7 +156,7 @@ End of models
 
 
 
-api.add_resource(Products, "/api/products")# добавляем api
+api.add_resource(Products, "/api/products/")# добавляем api
 
 
 @app.route('/check/<id>', methods=['GET'])
