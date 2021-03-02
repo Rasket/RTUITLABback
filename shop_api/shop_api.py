@@ -101,9 +101,12 @@ class Products(Resource):
         shop_name = json_data['shop']# переменная не используется, но по логике продукты присылаются в магазин
         products = json_data['product']# продукты присылаются строкой
         amounts = json_data['amount']# кол-во продуктов
+
+
+        # если продукты отправляются пачкой
+        
         temp_prod = []
         temp_amount = []
-
         for i in products:
             temp_prod.append(products[i])
         products = temp_prod
@@ -116,7 +119,12 @@ class Products(Resource):
         for prod in product:
             p = Product.query.filter_by(name = prod[1]).first() 
             p.amount += int(prod[0])
+        '''
+        # если продукты по одной записи
+        p = Product.query.filter_by(name = products).first()
+        p.amount += int(amounts) 
         db.session.commit()
+        '''
         return 'GET' #ключ того, что все прошло успешно
 
 
