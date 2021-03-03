@@ -12,6 +12,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///factory_db.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 
+
 class Products(db.Model):
 	id = db.Column(db.Integer, primary_key = True, autoincrement = True)
 	Shop = db.Column(db.String(120))
@@ -29,6 +30,8 @@ def transfer():
         { "1" : "first"}, "amount" : {"1":"1"}})
     '''
     query = Products.query.all()
+    element_del = []
+#=============================================================
     try:
         temp_prod, temp_amount = {}, {}#  словарик, в который пишутся все продукты
         key = 0# ключик словарика
@@ -36,14 +39,23 @@ def transfer():
             temp_prod[key] = element.Product
             temp_amount[key] = element.Amount    
             key += 1
+            element_del.append(element.id)
         temp_json = json.dumps({"shop" : element.Shop, "product" : temp_prod, "amount" : temp_amount})
         print(temp_json)
         r = requests.post("http://127.0.0.1:9998/api/products/", data = temp_json)
+        if r.text[1:-2] == 'GET':
+            print('Allright')                        
+        else:
+            print('Some error occured')
     except Exception as e:
-        raise e
+        print('No connect')
+    for delete in element_del:
+        delete_q = Products.__table__.delete().where(Products.id == delete)
+        db.session.execute(delete_q)
+    db.session.commit()
+    return 0
 #=============================================================
-'''
-    element_del = []
+'''    
     try:
         for element in query:
             temp_json = json.dumps({"shop" : element.Shop, "product" : element.Product, "amount" : element.Amount})

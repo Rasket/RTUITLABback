@@ -115,7 +115,7 @@ class Products(Resource):
             temp_amount.append(amounts[i])
         amounts = temp_amount
 
-        product = [list(temp) for temp in zip(map(int, amounts), products)]        
+        product = [list(temp) for temp in zip(map(int, amounts), products)]  
         for prod in product:
             p = Product.query.filter_by(name = prod[1]).first() 
             p.amount += int(prod[0])
@@ -123,8 +123,9 @@ class Products(Resource):
         # если продукты по одной записи
         p = Product.query.filter_by(name = products).first()
         p.amount += int(amounts) 
-        db.session.commit()
+        
         '''
+        db.session.commit()
         return 'GET' #ключ того, что все прошло успешно
 
 
