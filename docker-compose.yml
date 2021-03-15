@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  shop:
+    image: "shop_api:latest"
+    ports:
+      - "83:9998"
+  check:
+    image: "check_api:latest"
+    ports:
+      - "84:8888"
