@@ -1,12 +1,12 @@
 Check routes:
 
-http://127.0.0.1:80(8888)/getcheck/
+http://check:81(8888)/getcheck/
 	POST:
 	used to add check to db,
 	req json with next data - customer id, shop where products were buyed, names of products (dict) \
 		, amount of products (dict), type of pay, data, cost and shop category (???)
 
-http://127.0.0.1:80(8888)/getcheck/<int: id>
+http://check:81(8888)/getcheck/<int: id>
 	GET:
 	get all checks from user with this id
 	return html file with all data 
@@ -14,7 +14,7 @@ http://127.0.0.1:80(8888)/getcheck/<int: id>
 
 Shop routes:
 
-http://127.0.0.1:80(9998)/api/products/
+http://shop:82(9998)/api/products/
 
 	GET:
 		used to buy products from shop
@@ -25,6 +25,14 @@ http://127.0.0.1:80(9998)/api/products/
 		used to add products to shop
 		req json with next data - shop, products, amounts
 
+http://shop:82(9998)/api/getcheck
+
+	GET:
+	return all checks from own db
+
 
 Factory routes:
+http://factory:7777/
+
+
 None

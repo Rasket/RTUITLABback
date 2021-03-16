@@ -1,9 +1,14 @@
 from flask import Flask, jsonify, request
 from flask_restful import Api, Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
+from models import db
+from models import Shop
+from models import Check
+from models import Product
 from datetime import datetime
 import json
 import requests
+import socket
 '''
 Документацию не постандарту PEP8 (не на английском), но думаю на это все равно
 Основная задача микросервиса shop принимать и обрабатывать 3 типа запросов
@@ -18,7 +23,8 @@ app = Flask(__name__)
 app.secret_key = b'_5#  y2L"F4Q8z\n\xec]/'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-db = SQLAlchemy(app)
+#db = SQLAlchemy(app)
+db.init_app(app)
 api = Api(app)
 
 
@@ -75,8 +81,32 @@ class Products(Resource):
                     return 'Incorrect shop'
             else:
                 return 'Incorrect amount'
-        json_data_check = json.dumps({"id_buy" : str(id_buy), "shop" : str(s.name), "data" : str(datetime.utcnow()), "products" : str(temp_prod), "amounts" : str(temp_amount), "cost" : str(cost), "category" : str(s.category), "type_pay" : str(type_pay)})
-        requests.post("http://127.0.0.1:8888/getcheck/", data = json_data_check)
+        dict_data = {"id_buy" : str(id_buy), "shop" : str(s.name), "data" : str(datetime.utcnow())
+            , "products" : str(temp_prod), "amounts" : str(temp_amount)
+            , "cost" : str(cost), "category" : str(s.category)
+            , "type_pay" : str(type_pay)}
+        element_del = []
+        try:                
+            json_data_check = json.dumps(dict_data)
+            requests.post("http://check:8888/getcheck/", data = json_data_check)
+            checks = Check.query.all()
+            for element in checks:
+                json_data_check = json.dumps({"id_buy" : str(element.id_buy), "shop" : str(element.shop), "data" : str(element.date)
+            , "products" : str(element.products), "amounts" : str(element.amounts)
+            , "cost" : str(element.cost), "category" : str(element.category)
+            , "type_pay" : str(element.type_pay)})
+                requests.post("http://check:8888/getcheck/", data = json_data_check)                
+                element_del.append(element.id)
+
+        except Exception as e:
+            temp_check = Check(id_buy = dict_data["id_buy"], shop = dict_data["shop"], date = dict_data["data"]
+                , products = dict_data["products"], amounts = dict_data["amounts"]
+                , cost = dict_data["cost"], category = dict_data["category"], type_pay = dict_data["type_pay"])
+            db.session.add(temp_check)
+        for delete in element_del:
+            delete_q = Check.__table__.delete().where(Check.id == delete)
+            db.session.execute(delete_q)
+            
         db.session.commit()
         #temp_check = Check(id_buy = id_buy, date = datetime.utcnow(), products = temp_prod, amounts = temp_amount
         #        , cost = cost, category = s.category, type_pay = type_pay)
@@ -84,6 +114,7 @@ class Products(Resource):
         #db.session.commit()
         return 'Buy'
         # -------------------------------------
+        '''
         if p.shop_id == s.id: #  проверяем что магазин и товары связаны
             if (p.amount >= int(amount)) and (int(amount) > 0):# проверяем кол-во товара 
                 p.amount -= int(amount)#  "приобретаем"
@@ -95,6 +126,7 @@ class Products(Resource):
             else:
                 return 'Out of product' # В случае ошибки с кол-вом товара (меньше 0) или его нехваткой пишем об этом
         return 'Incorrect data' # в случае некорректных данных
+        '''
     def post(self):# пост запрос для завода
     #присылаем продукты в магазин
         json_data = request.get_json(force=True)
@@ -130,45 +162,14 @@ class Products(Resource):
 
 
 
-'''
-Models
-'''
-class Shop(db.Model):# модель Магазинов
-    id = db.Column(db.Integer, primary_key = True, autoincrement = True)
-    name = db.Column(db.String(120))# имя магазина
-    category = db.Column(db.String(120))# категория товаров магазина
 
-class Product(db.Model):# модель Продуктов
-    id = db.Column(db.Integer, primary_key = True, autoincrement = True)
-    shop_id = db.Column(db.Integer)# id магазина торгующего товарами
-    name = db.Column(db.String(120))# имя товара
-    description = db.Column(db.String(250))# описание (по ТЗ, вроде как использовать не надо)
-    cost = db.Column(db.Integer)# стоимость
-    amount = db.Column(db.Integer)# кол-во
-
-    def __repr__(self):
-        return f'<Product {self.name} {self.description} {self.amount}>' # удобный print
-
-class Check(db.Model):# модель Чеков
-    id = db.Column(db.Integer, primary_key = True, autoincrement = True)
-    id_buy = db.Column(db.Integer)# id покупателя
-    products = db.Column(db.String(500))
-    amounts = db.Column(db.Integer)
-    category = db.Column(db.String(140))# категория товара
-    cost = db.Column(db.Integer)# стоимость всей покупки
-    type_pay = db.Column(db.String(140))# способ оплаты
-    date = db.Column(db.DateTime, default = datetime.utcnow)# дата по Гринвичу
-    
-'''
-End of models
-'''
 
 
 
 api.add_resource(Products, "/api/products/")# добавляем api
 
-
-@app.route('/check/<id>', methods=['GET'])
+'''
+@app.route('/check/<int:id>', methods=['GET'])
 def getcheck(id):# рут для получения чека
     u = Check.query.filter_by(id_buy = id).all()    
     ret = {}# словарик, в который пишутся все чеки
@@ -191,6 +192,24 @@ def getcheck_alt():# рут для получения чека
             'category' : i.category, 'cost' : i.cost, 'date' : i.date, 'type_pay' : i.type_pay}# вытаскиваем поля из записей
         key += 1
     return jsonify(ret)
+'''
+
+@app.route('/api/getcheck/', methods=['GET'])
+def get_all_check():
+    checks = Check.query.all()
+    for element in checks:
+        json_data_check = json.dumps({"id_buy" : str(element.id_buy), "shop" : str(element.shop), "data" : str(element.date)
+            , "products" : str(element.products), "amounts" : str(element.amounts)
+            , "cost" : str(element.cost), "category" : str(element.category)
+            , "type_pay" : str(element.type_pay)})
+        try:
+            requests.post("http://check:8888/getcheck/", data = json_data_check)
+        except Exception as e:
+        	return 'error'
+    return 'SEND'                
+
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=9998, debug=True)# отключить debug
+	#json_data_check = json.dumps()
+	#requests.post("http://"+ socket.gethostname() + ":8888/getcheck/", data = json_data_check)
+    app.run(host="0.0.0.0", port=9998, debug=False)# отключить debug

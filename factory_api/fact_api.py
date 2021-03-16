@@ -39,10 +39,9 @@ def transfer():
             temp_prod[key] = element.Product
             temp_amount[key] = element.Amount    
             key += 1
-            element_del.append(element.id)
+            element_del.append(e тlement.id)
         temp_json = json.dumps({"shop" : element.Shop, "product" : temp_prod, "amount" : temp_amount})
-        print(temp_json)
-        r = requests.post("http://127.0.0.1:9998/api/products/", data = temp_json)
+        r = requests.post("http://shop:9998/api/products/", data = temp_json)
         if r.text[1:-2] == 'GET':
             print('Allright')                        
         else:
@@ -96,4 +95,4 @@ if __name__ == "__main__":
 		transfer()
 	else:
 		pass
-	app.run(port=7777, debug=True)
+	app.run(port=7777, debug=False)

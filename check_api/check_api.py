@@ -49,6 +49,11 @@ api.add_resource(Check_api, "/getcheck/")
 @app.route("/getcheck/<int:id>", methods=['GET'])
 def index(id):
     id = str(id)
+
+    try:
+        r = requests.get("http://shop:9998/api/getcheck/")
+    except:
+        print('Some troubles')
     u = Check.query.filter_by(id_buy = id).all()    
     ret = {}# словарик, в который пишутся все чеки
     key = 0# ключик словарика
@@ -60,4 +65,6 @@ def index(id):
     return render_template("base.html", data=ret)
 
 if __name__ == "__main__":
-	app.run(port=8888, debug=True)
+    session = requests.Session()
+    session.trust_env = False
+    app.run(host="0.0.0.0", port=8888, debug=True)
