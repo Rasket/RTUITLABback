@@ -50,18 +50,6 @@ class Products(Resource):
             temp_amount.append(amounts[i])
         amounts = temp_amount
              
-        ''' получение аргументов из строки
-        id_buy = request.args.get('id', None)#   id покупателя
-        shop = request.args.get('shop', None)#  магазин, из которого покупаем
-        products = str(request.args.get('products', None))#  приобретаемые продукты
-        amounts  = request.args.get('amounts', None)#  кол-во товара
-        type_pay  = request.args.get('type_pay', None)#  тип оплаты (тут просто строка, так что данные любые)
-        #  получаем из апи запроса данные для покупки
-        #  получаем запись о продукте
-        #  получаем инфо о магазине
-        products = products.split(',')
-        amounts = amounts.split(',')
-        '''
         product = [list(temp) for temp in zip(map(int, amounts), products)]
         temp_prod = ""
         temp_amount = ""
@@ -108,27 +96,8 @@ class Products(Resource):
             db.session.execute(delete_q)
             
         db.session.commit()
-        #temp_check = Check(id_buy = id_buy, date = datetime.utcnow(), products = temp_prod, amounts = temp_amount
-        #        , cost = cost, category = s.category, type_pay = type_pay)
-        #db.session.add(temp_check)
-        #db.session.commit()
         return 'Buy'
-        # -------------------------------------
-        '''
-        if p.shop_id == s.id: #  проверяем что магазин и товары связаны
-            if (p.amount >= int(amount)) and (int(amount) > 0):# проверяем кол-во товара 
-                p.amount -= int(amount)#  "приобретаем"
-                temp_check = Check(id_buy = id_buy, date = datetime.utcnow()
-                , cost = p.cost*int(amount), category = s.category, type_pay = type_pay)# создаем чек о приобретение
-                db.session.add(temp_check)
-                db.session.commit()# коммитик
-                return 'Buy'# Подтверждаем что операция прошла успешно
-            else:
-                return 'Out of product' # В случае ошибки с кол-вом товара (меньше 0) или его нехваткой пишем об этом
-        return 'Incorrect data' # в случае некорректных данных
-        '''
     def post(self):# пост запрос для завода
-    #присылаем продукты в магазин
         json_data = request.get_json(force=True)
         shop_name = json_data['shop']# переменная не используется, но по логике продукты присылаются в магазин
         products = json_data['product']# продукты присылаются строкой
@@ -151,12 +120,6 @@ class Products(Resource):
         for prod in product:
             p = Product.query.filter_by(name = prod[1]).first() 
             p.amount += int(prod[0])
-        '''
-        # если продукты по одной записи
-        p = Product.query.filter_by(name = products).first()
-        p.amount += int(amounts) 
-        
-        '''
         db.session.commit()
         return 'GET' #ключ того, что все прошло успешно
 
@@ -167,33 +130,6 @@ class Products(Resource):
 
 
 api.add_resource(Products, "/api/products/")# добавляем api
-
-'''
-@app.route('/check/<int:id>', methods=['GET'])
-def getcheck(id):# рут для получения чека
-    u = Check.query.filter_by(id_buy = id).all()    
-    ret = {}# словарик, в который пишутся все чеки
-    key = 0# ключик словарика
-    for i in u:
-        ret[key] = {'id' : i.id, 'id_buy' : i.id_buy, 'date' : i.date,
-            'category' : i.category, 'cost' : i.cost, 'type_pay' : i.type_pay}# вытаскиваем поля из записей
-        key += 1
-    return jsonify(ret)
-
-@app.route('/check/', methods=['GET'])
-def getcheck_alt():# рут для получения чека
-    json_data = request.get_json(force=True)
-    id_buy = json_data['id']
-    u = Check.query.filter_by(id_buy = id_buy).all() 
-    ret = {}# словарик, в который пишутся все чеки
-    key = 0# ключик словарика
-    for i in u:
-        ret[key] = {'id' : i.id, 'id_buy' : i.id_buy, 'products' : i.products, 'amounts' : i.amounts,
-            'category' : i.category, 'cost' : i.cost, 'date' : i.date, 'type_pay' : i.type_pay}# вытаскиваем поля из записей
-        key += 1
-    return jsonify(ret)
-'''
-
 @app.route('/api/getcheck/', methods=['GET'])
 def get_all_check():
     checks = Check.query.all()

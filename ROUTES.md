@@ -2,14 +2,30 @@ Check routes:
 
 http://check:81(8888)/getcheck/
 	POST:
-	used to add check to db,
-	req json with next data - customer id, shop where products were buyed, names of products (dict) \
-		, amount of products (dict), type of pay, data, cost and shop category (???)
+	json с полными данными чека (
+	id покупателя,
+	магазин,
+	продукты,
+	кол-во,
+	тип оплаты,
+	дата,
+	общая стоимость,
+	категория покупки
+	)
+	пример:
+	{
+	"shop":"First",
+	"id_buy":1,
+	"products":"first",
+	"amounts":1,
+	"category":"Tanks",
+	"cost":15,
+	"type_pay":"money",
+	"date":"2021-03-04 10:38:42.124681",
+	}
 
 http://check:81(8888)/getcheck/<int: id>
-	GET:
-	get all checks from user with this id
-	return html file with all data 
+получить html страницу с информацией о покупателе с номером id
 
 
 Shop routes:
@@ -17,22 +33,42 @@ Shop routes:
 http://shop:82(9998)/api/products/
 
 	GET:
-		used to buy products from shop
-		req json with next data - customer id, shop to buy products, products (dict), amount (dict)  \
-			, type of pay
-		if all data correct send post request tocheck service, except write check into his own db
+	купить в магазине
+	id покупателя, магазин, продукты, кол-во, тип оплаты
+	пример:
+	{
+    "id":"1",
+    "shop":"First",
+    "products":{
+        "1":"second"
+        },
+    "amounts":{
+        "1":1
+    },
+    "type_pay":"bill"
+}
+
 	POST:
-		used to add products to shop
-		req json with next data - shop, products, amounts
+	Отправка продуктов из фабрики
+	Магазин, Продукты, Кол-во
+	пример:
+	{
+    "shop":"First",
+    "products":{
+        "1":"second"
+        },
+    "amounts":{
+        "1":1
+    }
+	}
 
 http://shop:82(9998)/api/getcheck
 
 	GET:
-	return all checks from own db
+	Возвращает все чеки из БД
 
 
 Factory routes:
-http://factory:7777/
-
-
 None
+
+

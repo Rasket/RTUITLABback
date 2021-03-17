@@ -8,3 +8,5 @@ services:
     image: "check_api:latest"
     ports:
       - "84:8888"
+  fact:
+    image: "fact_api:latest"

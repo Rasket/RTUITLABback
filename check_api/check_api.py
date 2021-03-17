@@ -10,7 +10,7 @@ app = Flask(__name__)
 bootstrap = Bootstrap(app)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///check_db.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 # percent encode
 # url request with json //optional, ask a questidon.
@@ -67,4 +67,4 @@ def index(id):
 if __name__ == "__main__":
     session = requests.Session()
     session.trust_env = False
-    app.run(host="0.0.0.0", port=8888, debug=True)
+    app.run(host="0.0.0.0", port=8888, debug=False)
